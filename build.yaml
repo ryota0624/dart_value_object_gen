@@ -1,0 +1,8 @@
+builders:
+  value_object_builder:
+    import: "package:value_object_gen/builder.dart"
+    builder_factories: ["valueObjectBuilder"]
+    build_extensions: {".dart": ["value_object.g.part"]}
+    auto_apply: dependents
+    build_to: cache
+    applies_builders: ["source_gen|combining_builder"]

@@ -1,0 +1,19 @@
+name: example
+description: use value object gen
+version: 1.0.0
+
+environment:
+  sdk: '>=2.19.3 <3.0.0'
+
+dependencies:
+  analyzer: ^5.7.1
+  build: ^2.3.1
+  build_runner: ^2.3.3
+  json_annotation: ^4.8.0
+  json_serializable: ^6.6.1
+  source_gen: ^1.2.7
+  value_object_gen:
+    path: ../
+
+publish_to: none
+
