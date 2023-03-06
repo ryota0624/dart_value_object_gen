@@ -55,10 +55,13 @@ class ValueObjectGenerator extends GeneratorForAnnotation<ValueObject> {
     }
 
     // TODO: filedのprivateチェック
+    // TODO: null許容させない
     final primitiveFieldElement = element.fields
         .firstWhere((element) => element.name == valueFieldName);
 
     final implClassName = '_${element.name}Impl';
+    final primitiveElementName = primitiveFieldElement.type.getDisplayString(withNullability: false);
+
     yield '''
       class $implClassName extends ${element.name} {
         @override
@@ -66,9 +69,8 @@ class ValueObjectGenerator extends GeneratorForAnnotation<ValueObject> {
           if (identical(this, o)) return true;
           return o is $implClassName && o.$valueFieldName == $valueFieldName;
         }
-       
       
-        $implClassName(${primitiveFieldElement.type.getDisplayString(withNullability: false)} value): super.$constructorName(value);
+        $implClassName($primitiveElementName value): super.$constructorName(value);
       
         @override
         int get hashCode => $valueFieldName.hashCode;

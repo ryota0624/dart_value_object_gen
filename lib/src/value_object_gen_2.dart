@@ -2,23 +2,23 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
 
-class ValueObject {
-  const ValueObject({
+class ValueObject2 {
+  const ValueObject2({
+    required this.className,
     this.valueField = '_value',
     this.constructorName = '_',
   });
 
+  final String className;
   final String valueField;
   final String constructorName;
 }
 
-const valueObject = ValueObject();
-
-class ValueObjectGenerator extends GeneratorForAnnotation<ValueObject> {
+class ValueObject2Generator extends GeneratorForAnnotation<ValueObject2> {
   @override
   Stream<String> generateForAnnotatedElement(
       Element element, ConstantReader annotation, BuildStep buildStep) async* {
-    final annotation = const TypeChecker.fromRuntime(ValueObject)
+    final annotation = const TypeChecker.fromRuntime(ValueObject2)
         .firstAnnotationOf(element, throwOnUnresolved: false);
 
     if (element is! ClassElement) {
@@ -40,46 +40,37 @@ class ValueObjectGenerator extends GeneratorForAnnotation<ValueObject> {
       throw StateError('valueField is null');
     }
 
-
-    final constructorName =
-        annotation?.getField('constructorName')?.toStringValue();
-
-    if (constructorName == null) {
-      throw StateError('constructorName is null');
-    }
-
-    // TODO: constructorのprivateチェック
-    final constructor = element.constructors.firstWhere((element) => element.name == constructorName);
-    if (constructor.parameters.length != 1) {
-      throw ArgumentError('constructor parameters should single value');
-    }
-
     // TODO: filedのprivateチェック
     // TODO: null許容させない
-    final primitiveFieldElement = element.fields
-        .firstWhere((element) => element.name == valueFieldName);
-
-    final implClassName = '_${element.name}Impl';
-    final primitiveElementName = primitiveFieldElement.type.getDisplayString(withNullability: false);
+    final primitiveFieldElements = element.accessors.where((acc) => acc.isGetter && acc.name == valueFieldName);
+    if (primitiveFieldElements.isEmpty) {
+      throw Exception('isEmpty');
+    }
+    final primitiveFieldElement = primitiveFieldElements.first;
+    final implClassName = annotation?.getField('className')?.toStringValue();
+    final primitiveElementName = primitiveFieldElement.type.getDisplayString(withNullability: false).replaceAll('Function()', '');
 
     yield '''
       class $implClassName extends ${element.name} {
+        final $primitiveElementName _value;
+       
         @override
         bool operator ==(Object o) {
           if (identical(this, o)) return true;
           return o is $implClassName && o.$valueFieldName == $valueFieldName;
         }
-       
       
-        $implClassName($primitiveElementName value): super.$constructorName(value);
+        $implClassName($primitiveElementName this._value);
       
         @override
         int get hashCode => $valueFieldName.hashCode;
       
         @override
-        String toString() {
-          return $valueFieldName.toString();
-        }
+        String toString() => $valueFieldName.toString();
+        
+        $primitiveElementName toJson() => _value;
+        
+        factory $implClassName.fromJson($primitiveElementName json) => $implClassName(json);
       }
     ''';
   }
